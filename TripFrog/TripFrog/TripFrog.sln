@@ -3,12 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TripFrog", "TripFrog\TripFrog.csproj", "{5BFDA8AD-99F4-451A-B317-3E0CEE56BBE4}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2B2E872B-923F-47F6-AF51-86F0F4707406}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TripFrogWebApi", "TripFrogWebApi\TripFrogWebApi.csproj", "{1548DAE4-4E32-4BCA-89EB-70B7A0245D56}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripFrogModels", "TripFrogModels\TripFrogModels.csproj", "{DD476822-BE0A-4C0E-B368-6B0F13A70EBF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,10 +18,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5BFDA8AD-99F4-451A-B317-3E0CEE56BBE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5BFDA8AD-99F4-451A-B317-3E0CEE56BBE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5BFDA8AD-99F4-451A-B317-3E0CEE56BBE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5BFDA8AD-99F4-451A-B317-3E0CEE56BBE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1548DAE4-4E32-4BCA-89EB-70B7A0245D56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1548DAE4-4E32-4BCA-89EB-70B7A0245D56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1548DAE4-4E32-4BCA-89EB-70B7A0245D56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1548DAE4-4E32-4BCA-89EB-70B7A0245D56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD476822-BE0A-4C0E-B368-6B0F13A70EBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD476822-BE0A-4C0E-B368-6B0F13A70EBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD476822-BE0A-4C0E-B368-6B0F13A70EBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD476822-BE0A-4C0E-B368-6B0F13A70EBF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
