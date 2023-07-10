@@ -10,11 +10,13 @@ public sealed class UserService
 {
     private readonly TripFrogContext _context;
     private readonly IMapper _mapper;
+    private readonly JWTTokenCreator _jwtTokenCreator;
 
-    public UserService(TripFrogContext dbContext, IMapper mapper)
+    public UserService(TripFrogContext dbContext, IMapper mapper, JWTTokenCreator jwtTokenCreator)
     {
         _context = dbContext;
         _mapper = mapper;
+        _jwtTokenCreator = jwtTokenCreator;
     }
 
     public async Task<IServiceResponse<List<IUserDto>>> GetUsers()
@@ -68,6 +70,29 @@ public sealed class UserService
 
         return serviceResponse;
 
+    }
+
+    public async Task<IServiceResponse<string>> LoginUser(LoginUserDto loginUser)
+    {
+        var serviceResponse = new ServiceResponse<string>();
+
+        var userWithEmail = await _context.Users.SingleOrDefaultAsync(user => user.Email == loginUser.Email);
+        if (userWithEmail == null)
+        {
+            serviceResponse.Successful = false;
+            serviceResponse.Message = "User with such email does not exist";
+        }
+        else if (!PasswordHasher.VerifyPassword(loginUser.Password, userWithEmail.PasswordSalt,
+                     userWithEmail.PasswordHash))
+        {
+            serviceResponse.Successful = false;
+            serviceResponse.Message = "Password was not correct";
+        }
+        else
+        {
+            serviceResponse.Data = _jwtTokenCreator.CreateJWTToken(_mapper.Map<UserDto>(userWithEmail));
+        }
+        return serviceResponse;
     }
 
     public async Task<IServiceResponse<IUserDto>> ChangeUserInfo(ChangedUserInfoDto changedUser)
