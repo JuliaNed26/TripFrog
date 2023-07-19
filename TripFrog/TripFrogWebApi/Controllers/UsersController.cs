@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TripFrogWebApi.ActionsClasses;
+using TripFrogWebApi.Repositories;
 using TripFrogWebApi.DTO;
 
 namespace TripFrogWebApi.Controllers;
@@ -10,9 +10,9 @@ namespace TripFrogWebApi.Controllers;
 [Authorize]
 public class UsersController : ControllerBase
 {
-    private readonly UserService _userService;
+    private readonly UserRepository _userService;
 
-    public UsersController(UserService userService)
+    public UsersController(UserRepository userService)
     {
         _userService = userService;
     }

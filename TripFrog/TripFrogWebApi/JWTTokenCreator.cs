@@ -6,15 +6,22 @@ using TripFrogWebApi.DTO;
 
 namespace TripFrogWebApi;
 
-public sealed class JWTTokenCreator
+public class JWTTokenCreator
 {
-    private IConfiguration _configuration;
+    private string tokenKey;
 
-    public JWTTokenCreator(IConfiguration configuration) => _configuration = configuration;
+    public JWTTokenCreator(string? tokenKey)
+    {
+        if(string.IsNullOrEmpty(tokenKey))
+        {
+            throw new ArgumentNullException(nameof(tokenKey));
+        }
+        this.tokenKey = tokenKey;
+    }
+
     public string CreateJWTToken(IUserDto user)
     {
         List<Claim> userClaims = GenerateClaimsList(user);
-        string tokenKey = GetTokenKey();
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
@@ -38,16 +45,5 @@ public sealed class JWTTokenCreator
             new Claim("PictureUrl",user.PictureUrl ?? string.Empty),
             new Claim("Role",user.Role.ToString()),
         };
-    }
-
-    private string GetTokenKey()
-    {
-        string? tokenKey = _configuration.GetSection("AppSettings:TokenKey").Value;
-        if (tokenKey is null)
-        {
-            throw new ArgumentNullException(nameof(tokenKey));
-        }
-
-        return tokenKey;
     }
 }

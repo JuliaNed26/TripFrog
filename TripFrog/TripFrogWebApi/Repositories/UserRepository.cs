@@ -4,15 +4,15 @@ using TripFrogModels;
 using TripFrogModels.Models;
 using TripFrogWebApi.DTO;
 
-namespace TripFrogWebApi.ActionsClasses;
+namespace TripFrogWebApi.Repositories;
 
-public sealed class UserService
+public sealed class UserRepository
 {
     private readonly TripFrogContext _context;
     private readonly IMapper _mapper;
     private readonly JWTTokenCreator _jwtTokenCreator;
 
-    public UserService(TripFrogContext dbContext, IMapper mapper, JWTTokenCreator jwtTokenCreator)
+    public UserRepository(TripFrogContext dbContext, IMapper mapper, JWTTokenCreator jwtTokenCreator)
     {
         _context = dbContext;
         _mapper = mapper;
