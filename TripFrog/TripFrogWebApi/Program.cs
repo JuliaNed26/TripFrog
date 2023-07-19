@@ -8,7 +8,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using TripFrogModels;
 using TripFrogWebApi;
-using TripFrogWebApi.ActionsClasses;
+using TripFrogWebApi.Repositories;
 using TripFrogWebApi.KeyVaultClasses;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,8 +19,11 @@ builder.Services.AddDbContext<TripFrogContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
-builder.Services.AddSingleton<JWTTokenCreator>();
-builder.Services.AddScoped<UserService>();
+string? tokenKey = builder.Configuration.GetSection("AppSettings:TokenKey").Value;
+JWTTokenCreator jwtTokenCreator = new(tokenKey);
+builder.Services.AddSingleton(jwtTokenCreator);
+
+builder.Services.AddScoped<UserRepository>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

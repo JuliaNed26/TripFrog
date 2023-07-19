@@ -10,7 +10,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TripFrogWebApi", "TripFrogWebApi\TripFrogWebApi.csproj", "{1548DAE4-4E32-4BCA-89EB-70B7A0245D56}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripFrogModels", "TripFrogModels\TripFrogModels.csproj", "{DD476822-BE0A-4C0E-B368-6B0F13A70EBF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TripFrogModels", "TripFrogModels\TripFrogModels.csproj", "{DD476822-BE0A-4C0E-B368-6B0F13A70EBF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripFrogFixtures", "TripFrogFixtures\TripFrogFixtures.csproj", "{7E7369B6-A9B0-4A63-892C-A925F414DBCC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +28,10 @@ Global
 		{DD476822-BE0A-4C0E-B368-6B0F13A70EBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD476822-BE0A-4C0E-B368-6B0F13A70EBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD476822-BE0A-4C0E-B368-6B0F13A70EBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E7369B6-A9B0-4A63-892C-A925F414DBCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E7369B6-A9B0-4A63-892C-A925F414DBCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E7369B6-A9B0-4A63-892C-A925F414DBCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E7369B6-A9B0-4A63-892C-A925F414DBCC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
