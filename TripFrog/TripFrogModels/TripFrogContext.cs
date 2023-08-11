@@ -3,7 +3,7 @@ using TripFrogModels.Models;
 
 namespace TripFrogModels;
 
-public sealed class TripFrogContext : DbContext
+public class TripFrogContext : DbContext
 {
     public TripFrogContext(DbContextOptions<TripFrogContext> options) : base(options)
     {
@@ -19,6 +19,7 @@ public sealed class TripFrogContext : DbContext
     public DbSet<Country> Countries { get; set; }
     public DbSet<City> Cities { get; set; }
     public DbSet<Destination> Destinations { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,6 +46,12 @@ public sealed class TripFrogContext : DbContext
     }
     private void ConfigureRelationships(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<User>()
+            .HasOne(user => user.RefreshToken)
+            .WithOne(token => token.User)
+            .HasForeignKey<RefreshToken>(token => token.UserId)
+            .IsRequired();
+
         modelBuilder.Entity<LanguageUser>()
             .HasOne(langUser => langUser.User)
             .WithMany(user => user.LanguageUsers)
