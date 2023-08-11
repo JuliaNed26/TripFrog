@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TripFrogModels.Models;
 public sealed class User
@@ -16,6 +17,8 @@ public sealed class User
     public byte[] PasswordHash { get; set; }
     public byte[] PasswordSalt { get; set; }
     public Role Role { get; set; } = Role.Traveler;
+    public string? RefreshTokenId { get; set; }
+    public RefreshToken? RefreshToken { get; set; }
     public IList<LanguageUser>? LanguageUsers { get; set; }
     public IList<Trip>? Trips { get; set; }
     public IList<Apartment>? Apartments { get; set; }

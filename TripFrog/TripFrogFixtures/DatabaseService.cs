@@ -7,11 +7,37 @@ namespace TripFrogFixtures
 {
     internal sealed class DatabaseService
     {
+        private static readonly string[] PasswordsForUsersTable = { "crakozyabra0", "piupes12", "kitten18" };
+        private static readonly User[] UsersTableData =
+        {
+            new()
+            {
+                FirstName = "Slava",
+                LastName = "Nedavni",
+                Email = "email1@gmail.com",
+                Role = Role.Traveler
+            },
+            new()
+            {
+                FirstName = "Olya",
+                LastName = "Demchenko",
+                Email = "email2@gmail.com",
+                Role = Role.Traveler
+            },
+            new()
+            {
+                FirstName = "Liuda",
+                LastName = "Nedavnia",
+                Email = "email3@gmail.com",
+                Role = Role.Traveler
+            },
+        };
+
         public DatabaseService()
         {
             var options = new DbContextOptionsBuilder<TripFrogContext>()
-                          .UseInMemoryDatabase(databaseName: "InMemoryDb")
-                          .Options;
+                             .UseInMemoryDatabase(databaseName: "InMemoryDb")
+                             .Options;
 
             Context = new TripFrogContext(options);
         }
@@ -20,56 +46,30 @@ namespace TripFrogFixtures
 
         public void FillUsersTable()
         {
-            foreach (var user in usersTableData)
+            int i = 0;
+
+            foreach (var user in UsersTableData)
             {
+                PasswordHasherService.HashPassword(PasswordsForUsersTable[i], out byte[] salt, out byte[] hash);
+
+                user.Id = Guid.NewGuid();
+                user.RefreshToken = null;
+                user.RefreshTokenId = null;
+                user.PasswordHash = hash;
+                user.PasswordSalt = salt;
                 Context.Users.Add(user);
+
+                i++;
             }
 
             Context.SaveChanges();
         }
 
-        public void RemoveAllUsers()
+        public void ClearDatabase()
         {
-            Context.Users.RemoveRange(Context.Users.ToList());
+            Context.RefreshTokens.RemoveRange(Context.Set<RefreshToken>());
+            Context.Users.RemoveRange(Context.Set<User>());
+            Context.SaveChanges();
         }
-
-        private static readonly User[] usersTableData =
-        {
-            new()
-            {
-                FirstName = "Slava",
-                LastName = "Nedavni",
-                Email = "email1@gmail.com",
-                PasswordHash = HashPassword("crakozyabra0", out byte[] salt),
-                PasswordSalt = salt,
-                Role = Role.Traveler
-            },
-            new()
-            {
-                FirstName = "Olya",
-                LastName = "Demchenko",
-                Email = "email2@gmail.com",
-                PasswordHash = HashPassword("piupes12", out salt),
-                PasswordSalt = salt,
-                Role = Role.Traveler
-            },
-            new()
-            {
-                FirstName = "Liuda",
-                LastName = "Nedavnia",
-                Email = "email3@gmail.com",
-                PasswordHash = HashPassword("kitten18", out salt),
-                PasswordSalt = salt,
-                Role = Role.Traveler
-            },
-        };
-
-        private static byte[] HashPassword(string password, out byte[] salt)
-        {
-            PasswordHasher.HashPassword(password, out byte[] pasHash, out byte[] pasSalt);
-            salt = pasSalt;
-            return pasHash;
-        }
-
     }
 }
