@@ -1,0 +1,53 @@
+﻿@model TripFrogWebApi.DTO.UserDto
+
+@{
+    Layout = "_RegisteredUserLayout";
+    ViewData["Title"] = "ShowUserInfo";
+}
+
+<head>
+    <link rel="stylesheet" href="~/Styles/userInfo.css" />
+</head>
+
+<div class="container mt-5">
+    <h1>Personal information</h1>
+    <hr />
+    <div class="d-flex flex-row justify-content-between mt-5">
+        <div>
+            @if (string.IsNullOrEmpty(Model.PictureUrl))
+            {
+                <img class="accountImg" src="~/Images/Icons/accountIcon.svg" alt="Bootstrap" width="200" height="200">
+            }
+            else
+            {
+                <img class="accountImg" src=@Model.PictureUrl alt="Bootstrap" width="200" height="200">
+            }
+        </div>
+        <div class=" info d-flex flex-column justify-content-start">
+            <div class="infoLine">
+                <h4 class="me-2">First name:</h4>
+                <h5> @Model.FirstName</h5>
+            </div>
+            <div class="infoLine">
+                <h4 class="me-2">Last name:</h4>
+                <h5> @Model.LastName</h5>
+            </div>
+            <div class="infoLine">
+                <h4 class="me-2">Email:</h4>
+                <h5> @Model.Email</h5>
+            </div>
+            <div class="infoLine">
+                <h4 class="me-2">Phone:</h4>
+                <h5> @Model.Phone</h5>
+            </div>
+            <div class="infoLine">
+                <h4 class="me-2">Role:</h4>
+                <h5> @Model.Role</h5>
+            </div>
+            <div class="editBtn">
+                <a href="@Url.Action("RawEdit", "UserInfo")" class="btn btn-success">Edit</a>
+            </div>
+        </div>
+        <img class="backgroungImg" src="~/Images/frogPaws.svg" alt="Bootstrap" width="500" height="500">
+    </div>
+</div>

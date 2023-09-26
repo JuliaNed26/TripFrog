@@ -1,12 +1,14 @@
-﻿@model TripFrogWebApi.DTO.LoginUserDto
+﻿@model TripFrogWebApi.DTO.LoginUserCredentialsDto
 
 @{
     ViewData["Title"] = "Login";
 }
 
-<h1>Login</h1>
+<head>
+    <link rel="stylesheet" href="~/Styles/registerLogin.css" />
+</head>
 
-<h4>LoginUserDto</h4>
+<h1 class="mt-5">Log in</h1>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -17,22 +19,36 @@
                 <input asp-for="Email" class="form-control" />
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="Password" class="control-label"></label>
-                <input asp-for="Password" class="form-control" />
+                <input type="password" asp-for="Password" class="form-control" />
                 <span asp-validation-for="Password" class="text-danger"></span>
+                <div>
+                    <input class="checkbox" type="checkbox" id="showPasswordCheckbox" />
+                    Show
+                </div>
             </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Sign in" class="btn btn-success" />
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            $('#showPasswordCheckbox').click(function () {
+                var passwordInput = $('#Password');
+                if (passwordInput.attr('type') === 'password') {
+                    passwordInput.attr('type', 'text');
+                } else {
+                    passwordInput.attr('type', 'password');
+                }
+            });
+        });
+    </script>
 }

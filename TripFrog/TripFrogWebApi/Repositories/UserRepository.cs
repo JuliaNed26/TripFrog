@@ -3,157 +3,154 @@ using Microsoft.EntityFrameworkCore;
 using TripFrogModels;
 using TripFrogModels.Models;
 using TripFrogWebApi.DTO;
+using TripFrogWebApi.Services;
 
 namespace TripFrogWebApi.Repositories;
 
-public sealed class UserRepository
+public sealed class UserRepository : IUserRepository
 {
     private readonly TripFrogContext _context;
     private readonly IMapper _mapper;
-    private readonly JWTTokenCreator _jwtTokenCreator;
 
-    public UserRepository(TripFrogContext dbContext, IMapper mapper, JWTTokenCreator jwtTokenCreator)
+    public UserRepository(TripFrogContext dbContext, IMapper mapper)
     {
         _context = dbContext;
         _mapper = mapper;
-        _jwtTokenCreator = jwtTokenCreator;
     }
 
-    public async Task<IServiceResponse<List<IUserDto>>> GetUsers()
+    public async Task<IResponse<List<IUserDto>>> GetUsersAsync()
     {
-        var users = await _context.Users.Select(user => _mapper.Map<UserDto>(user)).ToListAsync();
-        var serviceResponse = new ServiceResponse<List<IUserDto>>
+        var users = await _context.Users.Select(user => (IUserDto)_mapper.Map<UserDto>(user))
+                                                     .ToListAsync();
+
+        return new Response<List<IUserDto>>
         {
-            Data = users.Select(user => user as IUserDto).ToList()
+            Successful = true,
+            Data = users
         };
-        return serviceResponse;
     }
 
-    public async Task<IServiceResponse<IUserDto>> GetUserById(Guid id)
+    public async Task<IResponse<IUserDto>> GetUserByCredentialsAsync(ILoginUserCredentialsDto loginCredentials)
     {
-        var serviceResponse = new ServiceResponse<IUserDto>();
-
-        try
-        {
-            var foundUser = await _context.Users.SingleAsync(user => user.Id == id);
-            serviceResponse.Data = _mapper.Map<UserDto>(foundUser);
-        }
-        catch (InvalidOperationException)
-        {
-            serviceResponse.Successful = false;
-            serviceResponse.Message = "User with such id was not found";
-        }
-        return serviceResponse;
-    }
-
-    public async Task<IServiceResponse<IUserDto>> RegisterUser(RegisterUserDto registerUser)
-    {
-        var serviceResponse = new ServiceResponse<IUserDto>();
-        
-        var usersWithSameLoginExists = await _context.Users.AnyAsync(user => user.Email == registerUser.Email);
-
-        if (usersWithSameLoginExists)
-        {
-            serviceResponse.Successful = false;
-            serviceResponse.Message = "User with such email already exists";
-
-        }
-        else
-        {
-            var newUser = CreateNewUserWithHashedPassword(registerUser);
-            ChangeIdWhileGuidExists(newUser);
-
-            _context.Users.Add(newUser);
-            await _context.SaveChangesAsync();
-            serviceResponse.Data = _mapper.Map<UserDto>(_context.Users.Single(user => user.Id == newUser.Id));
-        }
-
-        return serviceResponse;
-
-    }
-
-    public async Task<IServiceResponse<string>> LoginUser(LoginUserDto loginUser)
-    {
-        var serviceResponse = new ServiceResponse<string>();
-
-        var userWithEmail = await _context.Users.SingleOrDefaultAsync(user => user.Email == loginUser.Email);
+        var userWithEmail = await _context.Users.SingleOrDefaultAsync(user => user.Email == loginCredentials.Email);
         if (userWithEmail == null)
         {
-            serviceResponse.Successful = false;
-            serviceResponse.Message = "User with such email does not exist";
+            return new Response<IUserDto>
+            {
+                Successful = false,
+                Message = "User with such email does not exist"
+            };
         }
-        else if (!PasswordHasher.VerifyPassword(loginUser.Password, userWithEmail.PasswordSalt,
-                     userWithEmail.PasswordHash))
+
+        if (!PasswordHasher.IsPasswordValidBySaltAndHash(loginCredentials.Password, 
+                                                         userWithEmail.PasswordSalt,
+                                                         userWithEmail.PasswordHash))
         {
-            serviceResponse.Successful = false;
-            serviceResponse.Message = "Password was not correct";
+            return new Response<IUserDto>
+            {
+                Successful = false,
+                Message = "Password is not correct"
+            };
         }
-        else
+
+        return new Response<IUserDto>
         {
-            serviceResponse.Data = _jwtTokenCreator.CreateJWTToken(_mapper.Map<UserDto>(userWithEmail));
-        }
-        return serviceResponse;
+            Successful = true,
+            Data = _mapper.Map<UserDto>(userWithEmail)
+        };
     }
 
-    public async Task<IServiceResponse<IUserDto>> ChangeUserInfo(ChangedUserInfoDto changedUser)
+    public async Task<IResponse<IUserDto>> RegisterUserAsync(IRegisterUserDto registerUser)
     {
-        var serviceResponse = new ServiceResponse<IUserDto>();
-        try
-        {
-            var foundUser = await _context.Users.SingleAsync(user => user.Id == changedUser.Id);
-            ChangeExistingUserInfo(changedUser, ref foundUser);
+        var usersWithSameEmailExists = await _context.Users.AnyAsync(user => user.Email == registerUser.Email);
 
-            _context.Users.Update(foundUser);
-            await _context.SaveChangesAsync();
-            serviceResponse.Data = _mapper.Map<UserDto>(foundUser);
-        }
-        catch (InvalidOperationException)
+        if (usersWithSameEmailExists)
         {
-            serviceResponse.Successful = false;
-            serviceResponse.Message = "User with such id was not found";
+            return new Response<IUserDto>
+            {
+                Successful = false,
+                Message = "User with such email already exists"
+            };
         }
-        return serviceResponse;
+
+        var newUser = CreateNewUserWithHashedPassword(registerUser);
+        _context.Users.Add(newUser);
+        await _context.SaveChangesAsync();
+
+        var createdUser = _context.Users.Single(user => user.Id == newUser.Id);
+        return new Response<IUserDto>
+        {
+            Successful = true,
+            Data = _mapper.Map<UserDto>(createdUser)
+        };
     }
 
-    public async Task<IServiceResponse<IUserDto>> DeleteUser(Guid id)
+    public async Task<IResponse<IUserDto>> ChangeUserInfoAsync(IChangedUserInfoDto changedUser)
     {
-        var serviceResponse = new ServiceResponse<IUserDto>();
+        var userToChange = await _context.Users.SingleOrDefaultAsync(user => user.Id == changedUser.Id);
+        if (userToChange == null)
+        {
+            return new Response<IUserDto>
+            {
+                Successful = false,
+                Message = "User with such id was not found"
+            };
+        }
 
-        try
+        ChangeUserEntity(changedUser, ref userToChange);
+        _context.Users.Update(userToChange);
+        await _context.SaveChangesAsync();
+
+        return new Response<IUserDto>
         {
-            var userToDelete = await _context.Users.SingleAsync(user => user.Id == id);
-            _context.Users.Remove(userToDelete);
-            await _context.SaveChangesAsync();
-            serviceResponse.Data = _mapper.Map<UserDto>(userToDelete);
-        }
-        catch (InvalidOperationException)
-        {
-            serviceResponse.Successful = false;
-            serviceResponse.Message = "User with such id was not found";
-        }
-        return serviceResponse;
+            Successful = true,
+            Data = _mapper.Map<UserDto>(userToChange)
+        };
     }
 
-    private void ChangeExistingUserInfo(ChangedUserInfoDto changedUserDto, ref User changedUser)
+    public async Task<IResponse<IUserDto>> DeleteUserAsync(Guid id)
     {
-        PasswordHasher.HashPassword(changedUserDto.Password, out byte[] passwordSalt, out byte[] passwordHash);
+        var userToDelete = await _context.Users.SingleOrDefaultAsync(user => user.Id == id);
+        if (userToDelete == null)
+        {
+            return new Response<IUserDto>
+            {
+                Successful = false,
+                Message = "User with such id was not found"
+            };
+        }
+        _context.Users.Remove(userToDelete);
+        await _context.SaveChangesAsync();
 
-        changedUser.Id = changedUserDto.Id;
-        changedUser.FirstName = changedUserDto.FirstName;
-        changedUser.LastName = changedUserDto.LastName;
-        changedUser.Email = changedUserDto.Email;
-        changedUser.Phone = changedUserDto.Phone;
-        changedUser.PictureUrl = changedUserDto.PictureUrl;
-        changedUser.PasswordSalt = passwordSalt;
-        changedUser.PasswordHash = passwordHash;
-        changedUser.Role = changedUserDto.Role;
+        return new Response<IUserDto>
+        {
+            Successful = true,
+            Data = _mapper.Map<UserDto>(userToDelete)
+        };
     }
 
-    private User CreateNewUserWithHashedPassword(RegisterUserDto registerUser)
+    private static void ChangeUserEntity(IChangedUserInfoDto changesToUser, ref User userEntity)
+    {
+        userEntity.FirstName = changesToUser.FirstName;
+        userEntity.LastName = changesToUser.LastName;
+        userEntity.Email = changesToUser.Email;
+        userEntity.Phone = changesToUser.Phone;
+        userEntity.PictureUrl = changesToUser.PictureUrl;
+        userEntity.Role = changesToUser.Role;
+
+        if (changesToUser.Password is not null)
+        {
+            PasswordHasher.HashPassword(changesToUser.Password, out byte[] passwordSalt, out byte[] passwordHash);
+            userEntity.PasswordSalt = passwordSalt;
+            userEntity.PasswordHash = passwordHash;
+        }
+    }
+
+    private User CreateNewUserWithHashedPassword(IRegisterUserDto registerUser)
     {
         PasswordHasher.HashPassword(registerUser.Password, out byte[] passwordSalt, out byte[] passwordHash);
 
-        return new User()
+        return new User
         {
             Id = Guid.NewGuid(),
             FirstName = registerUser.FirstName,
@@ -164,13 +161,5 @@ public sealed class UserRepository
             PasswordHash = passwordHash,
             Role = registerUser.Role
         };
-    }
-
-    private async void ChangeIdWhileGuidExists(User user)
-    {
-        while ((await GetUserById(user.Id)).Successful)
-        {
-            user.Id = Guid.NewGuid();
-        }
     }
 }

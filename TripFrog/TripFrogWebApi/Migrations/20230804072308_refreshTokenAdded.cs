@@ -13,7 +13,7 @@ namespace TripFrogWebApi.Migrations
         {
             migrationBuilder.AddColumn<string>(
                 name: "RefreshTokenId",
-                table: "Users",
+                table: "UserRepository",
                 type: "nvarchar(450)",
                 nullable: false,
                 defaultValue: "");
@@ -33,13 +33,13 @@ namespace TripFrogWebApi.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_RefreshTokenId",
-                table: "Users",
+                table: "UserRepository",
                 column: "RefreshTokenId",
                 unique: true);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Users_RefreshToken_RefreshTokenId",
-                table: "Users",
+                table: "UserRepository",
                 column: "RefreshTokenId",
                 principalTable: "RefreshToken",
                 principalColumn: "Token",
@@ -51,18 +51,18 @@ namespace TripFrogWebApi.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_Users_RefreshToken_RefreshTokenId",
-                table: "Users");
+                table: "UserRepository");
 
             migrationBuilder.DropTable(
                 name: "RefreshToken");
 
             migrationBuilder.DropIndex(
                 name: "IX_Users_RefreshTokenId",
-                table: "Users");
+                table: "UserRepository");
 
             migrationBuilder.DropColumn(
                 name: "RefreshTokenId",
-                table: "Users");
+                table: "UserRepository");
         }
     }
 }

@@ -5,6 +5,6 @@ namespace TripFrogModels;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum Role
 {
-    Admin,
-    Traveler
+    Traveler,
+    Landlord
 }

@@ -6,9 +6,9 @@ namespace TripFrogWebApi.Controllers;
 
 public static class ModelValidator
 {
-    public static bool IsModelValid(this ControllerBase controller, object modelToValidate, out ModelStateDictionary modelsState)
+    public static bool IsModelValid(this ControllerBase controller, object modelToValidate, out ModelStateDictionary modelState)
     {
-        var validationContext = new ValidationContext(modelToValidate, serviceProvider: null, items: null);
+        var validationContext = new ValidationContext(modelToValidate);
         var validationResults = new List<ValidationResult>();
         bool isValid = Validator.TryValidateObject(modelToValidate, validationContext, validationResults, validateAllProperties: true);
 
@@ -22,11 +22,11 @@ public static class ModelValidator
                 }
             }
 
-            modelsState = controller.ModelState;
+            modelState = controller.ModelState;
             return false;
         }
 
-        modelsState = new ModelStateDictionary();
+        modelState = new ModelStateDictionary();
         return true;
     }
 }

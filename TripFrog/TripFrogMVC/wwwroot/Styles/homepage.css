@@ -1,0 +1,83 @@
+﻿h1 {
+    background-color: rgb(46, 137, 92, 0.56);
+}
+
+#headImg {
+    position: absolute;
+    left:0;
+    top:0;
+    width: 100%;
+    height: 100vh;
+    z-index: -1;
+}
+
+#headOfPage {
+    text-align: center;
+    width:100%;
+    height: 100vh;
+}
+
+#siteShortInfo{
+    position:absolute;
+    left:5%;
+    top: 100vh;
+    right: 5%;
+    height:100vh;
+}
+
+.infoColumn {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    height:100%;
+    width:45%;
+}
+
+.infoContainer {
+    position: sticky;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 25%;
+    font-size: large;
+    padding: 30px;
+    border-left: 6px solid green;
+}
+
+.placeImg {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: 33%;
+}
+
+.siteBenefits {
+    position: absolute;
+    left: 0;
+    top: 200vh;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 30%;
+}
+
+.benefitContainer {
+    margin-bottom:5%;
+    border:solid;
+    padding:3%;
+}
+
+h5{
+    font-style:italic;
+}
+
+.benefitsBackground2 {
+    position: absolute;
+    right: 0;
+    bottom: 10%;
+    width: 50%;
+    height: 70%;
+    z-index: -1;
+}
