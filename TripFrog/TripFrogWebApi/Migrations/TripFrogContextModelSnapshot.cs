@@ -86,7 +86,7 @@ namespace TripFrogWebApi.Migrations
                     b.Property<Guid>("ApartmentId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("PhotoUrl")
+                    b.Property<string>("PictureUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -248,7 +248,7 @@ namespace TripFrogWebApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("PhotoUrl")
+                    b.Property<string>("PictureUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -275,7 +275,7 @@ namespace TripFrogWebApi.Migrations
 
                     b.HasKey("Token");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshJwtToken", (string)null);
                 });
 
             modelBuilder.Entity("TripFrogModels.Models.Ticket", b =>
@@ -359,7 +359,7 @@ namespace TripFrogWebApi.Migrations
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PictureUrl")
+                    b.Property<string>("AccountPhoto")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RefreshTokenId")
@@ -374,7 +374,7 @@ namespace TripFrogWebApi.Migrations
                         .IsUnique()
                         .HasFilter("[RefreshTokenId] IS NOT NULL");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("UserRepository", (string)null);
                 });
 
             modelBuilder.Entity("TripFrogModels.Models.Apartment", b =>

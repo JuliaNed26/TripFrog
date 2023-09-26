@@ -1,6 +1,5 @@
 using System.Text;
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +8,9 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using TripFrogModels;
 using TripFrogWebApi;
-using TripFrogWebApi.KeyVaultClasses;
-using TripFrogWebApi.TokensCreator;
+using TripFrogWebApi.Middleware;
+using TripFrogWebApi.Repositories;
+using TripFrogWebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +21,7 @@ builder.Services.AddDbContext<TripFrogContext>(options =>
         b => b.MigrationsAssembly("TripFrogWebApi")));
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
-AddAzureKeyVault();
+//AddAzureKeyVault();
 
 string tokenKeySectionName = "JwtTokenSettings:TokenKey";
 var tokenValidationParameters = new TokenValidationParameters
@@ -30,16 +30,18 @@ var tokenValidationParameters = new TokenValidationParameters
     IssuerSigningKey = new SymmetricSecurityKey
         (Encoding.UTF8.GetBytes(builder.Configuration.GetSection(tokenKeySectionName).Value!)),
     ValidateIssuer = false,
-    ValidateAudience = false,
+    ValidateAudience = false
 };
 string tokenKey = builder.Configuration.GetSection(tokenKeySectionName).Value!;
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>(_ => new JwtTokenService(tokenKey, tokenValidationParameters));
+
+builder.Services.AddSingleton<IEmailSender>(_ => new EmailSender(builder.Configuration.GetSection("EmailApiKey").Value!));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddEndpointsApiExplorer(); 
 builder.Services.AddSwaggerGen(options =>
     {
         options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
@@ -54,6 +56,7 @@ builder.Services.AddSwaggerGen(options =>
     }
 );
 
+
 builder.Services.AddSingleton(tokenValidationParameters);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -62,6 +65,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = tokenValidationParameters;
     });
 
+builder.Services.AddSingleton(x =>
+    new BlobServiceClient(builder.Configuration.GetValue<string>("AzureBlobStorageConnectionString")));
+builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
 
 var app = builder.Build();
 
@@ -83,7 +89,7 @@ app.UseCookiePolicy(new CookiePolicyOptions
 
 app.Use(async (context, next) =>
 {
-    var token = context.Request.Cookies[CookieKeys.KeyForSavingJwtInCookie];
+    var token = context.Request.Cookies[AppConstants.KeyForSavingJwtInCookie];
     if (!string.IsNullOrEmpty(token))
     {
         context.Request.Headers.Add("Authorization", $"Bearer {token}");
@@ -92,6 +98,8 @@ app.Use(async (context, next) =>
     await next(context);
 });
 
+app.UseMiddleware<CheckJwtTokenExpiredMiddleware>();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
@@ -99,14 +107,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-void AddAzureKeyVault()
-{
-    var keyVaultEndpoint = new Uri(builder.Configuration.GetSection("KeyVault:Url").Value!);
-    var tenantId = builder.Configuration.GetSection("KeyVault:TenantId").Value!;
-    var clientId = builder.Configuration.GetSection("KeyVault:ClientId").Value!;
-    var thumbprint = builder.Configuration.GetSection("KeyVault:Thumbprint").Value!;
-    var credential = new ClientCertificateCredential(tenantId, clientId, CertificateReceiver.GetCertificate(thumbprint));
-    var client = new SecretClient(keyVaultEndpoint, credential);
-    builder.Configuration.AddAzureKeyVault(client, new PrefixKeyVaultSecretManager("TripFrog"));
-}

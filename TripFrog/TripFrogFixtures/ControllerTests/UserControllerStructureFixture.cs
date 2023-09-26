@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using TripFrogWebApi.Controllers;
+using TripFrogWebApi.Repositories;
+using TripFrogWebApi.Services;
 
 namespace TripFrogFixtures.ControllerTests;
 
@@ -15,7 +17,7 @@ public class UserControllerStructureFixture
     public void SetupFields()
     {
         var fakeUnitOfWork = Substitute.For<IUnitOfWork>();
-        _controller = new UsersController(fakeUnitOfWork)
+        _controller = new UsersController(fakeUnitOfWork, Substitute.For<EmailSender>(string.Empty))
         {
             ControllerContext = new ControllerContext
             {
@@ -38,7 +40,7 @@ public class UserControllerStructureFixture
     }
 
     [Test]
-    public void AuthorizeRequiredMethods_Unauthorized_Returns401Response()
+    public void AllowAnonymousMethodsAreRegisterAndLogin()
     {
         //arrange
         var controllerType = _controller.GetType();
@@ -50,8 +52,8 @@ public class UserControllerStructureFixture
 
         //act
         var methodsWithAllowAnonymousAttribute = controllerType.GetMethods()
-            .Where(method => method.GetCustomAttributes<AllowAnonymousAttribute>().Any())
-            .ToList();
+                                                                             .Where(method => method.GetCustomAttributes<AllowAnonymousAttribute>().Any())
+                                                                             .ToList();
 
         //assert
         CollectionAssert.AreEquivalent(allowAnonymousMethods, methodsWithAllowAnonymousAttribute);

@@ -36,7 +36,7 @@ namespace TripFrogWebApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "UserRepository",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -98,7 +98,7 @@ namespace TripFrogWebApi.Migrations
                     table.ForeignKey(
                         name: "FK_Apartments_Users_UserId",
                         column: x => x.UserId,
-                        principalTable: "Users",
+                        principalTable: "UserRepository",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -122,7 +122,7 @@ namespace TripFrogWebApi.Migrations
                     table.ForeignKey(
                         name: "FK_LanguageUser_Users_UserId",
                         column: x => x.UserId,
-                        principalTable: "Users",
+                        principalTable: "UserRepository",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -144,7 +144,7 @@ namespace TripFrogWebApi.Migrations
                     table.ForeignKey(
                         name: "FK_Trips_Users_UserId",
                         column: x => x.UserId,
-                        principalTable: "Users",
+                        principalTable: "UserRepository",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -379,7 +379,7 @@ namespace TripFrogWebApi.Migrations
                 name: "Cities");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "UserRepository");
 
             migrationBuilder.DropTable(
                 name: "Countries");

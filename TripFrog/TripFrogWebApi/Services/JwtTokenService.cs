@@ -2,14 +2,15 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using TripFrogModels;
 using TripFrogWebApi.DTO;
 
-namespace TripFrogWebApi.TokensCreator;
-public sealed class JwtTokenService: IJwtTokenService
+namespace TripFrogWebApi.Services;
+public class JwtTokenService : IJwtTokenService
 {
-    private readonly string _tokenKey;
+    private const string EncryptAlgorithm = SecurityAlgorithms.HmacSha256Signature;
     private readonly TokenValidationParameters _validationParameters;
-    private readonly string _encryptAlgorithm = SecurityAlgorithms.HmacSha256Signature;
+    private readonly string _tokenKey;
 
     public JwtTokenService(string tokenKey, TokenValidationParameters tokenValidationParameters)
     {
@@ -21,39 +22,76 @@ public sealed class JwtTokenService: IJwtTokenService
         _validationParameters = tokenValidationParameters;
     }
 
-    public string GenerateJwtToken(IUserDto user)
+    public IJwtTokenDto GenerateJwtToken(IUserDto user)
     {
         var userClaims = GenerateClaimsList(user);
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenKey));
-        var credentials = new SigningCredentials(key, _encryptAlgorithm);
+        var credentials = new SigningCredentials(key, EncryptAlgorithm);
+        var expirationDate = DateTime.UtcNow.AddMinutes(AppConstants.MinutesJwtTokenAlive);
         var token = new JwtSecurityToken(
             claims: userClaims,
-            expires: DateTime.UtcNow.AddMinutes(20),
+            expires: expirationDate,
             signingCredentials: credentials);
-        return new JwtSecurityTokenHandler().WriteToken(token);
+
+        var createdToken = new JwtSecurityTokenHandler().WriteToken(token);
+        return new JwtTokenDto
+        {
+            Token = createdToken,
+            ExpirationDate = expirationDate
+        };
     }
 
-    public bool TryGetClaimsFromToken(string token, out ClaimsPrincipal principal)
+    public DateTime GetTokenExpirationDate(ClaimsPrincipal tokenClaimsPrincipal)
+    {
+        var jwtTokenExpirationUnix = long.Parse(tokenClaimsPrincipal.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
+        var jwtExpirationDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(jwtTokenExpirationUnix);
+        return jwtExpirationDate;
+    }
+
+    public bool TryGetUserInfoFromToken(string token, out IUserDto loggedUser)
+    {
+        if (!TryGetClaimsFromToken(token, out var claimsPrincipal))
+        {
+            loggedUser = new UserDto();
+            return false;
+        }
+
+        loggedUser = new UserDto
+        {
+            Id = Guid.Parse(claimsPrincipal.Claims.Single(x => x.Type == "Id").Value),
+            FirstName = claimsPrincipal.Claims.Single(x => x.Type == "FirstName").Value,
+            LastName = claimsPrincipal.Claims.Single(x => x.Type == "LastName").Value,
+            Email = claimsPrincipal.Claims.Single(x => x.Type == "Email").Value,
+            Phone = claimsPrincipal.Claims.Single(x => x.Type == "Phone").Value,
+            PictureUrl = claimsPrincipal.Claims.Single(x => x.Type == "AccountPhoto").Value,
+            Role = claimsPrincipal.Claims.Single(x => x.Type == "Role").Value == "Traveler"
+                   ? Role.Traveler
+                   : Role.Landlord
+        };
+        return true;
+    }
+
+    public bool TryGetClaimsFromToken(string token, out ClaimsPrincipal claimsPrincipalFromToken)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        principal = new ClaimsPrincipal();
+        claimsPrincipalFromToken = new ClaimsPrincipal();
 
         try
         {
-            var testPrincipal = tokenHandler.ValidateToken(token, _validationParameters, out var validatedToken);
+            var claimsPrincipal = tokenHandler.ValidateToken(token, _validationParameters, out var validatedToken);
             if (validatedToken is JwtSecurityToken jwtSecurityToken 
-                && jwtSecurityToken.Header.Alg.Equals(_encryptAlgorithm, StringComparison.InvariantCultureIgnoreCase))
+                && jwtSecurityToken.Header.Alg.Equals(EncryptAlgorithm, StringComparison.InvariantCultureIgnoreCase))
             {
-                principal = testPrincipal;
-                return true;
+                claimsPrincipalFromToken = claimsPrincipal;
             }
         }
         catch
         {
             return false;
         }
-        return false;
+
+        return true;
     }
 
     private static IEnumerable<Claim> GenerateClaimsList(IUserDto user)
@@ -65,7 +103,7 @@ public sealed class JwtTokenService: IJwtTokenService
             new ("LastName",user.LastName ?? string.Empty),
             new ("Email",user.Email),
             new ("Phone",user.Phone ?? string.Empty),
-            new ("PictureUrl",user.PictureUrl ?? string.Empty),
+            new ("AccountPhoto",user.PictureUrl ?? string.Empty),
             new ("Role",user.Role.ToString()),
         };
     }

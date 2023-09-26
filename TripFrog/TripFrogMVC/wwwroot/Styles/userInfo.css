@@ -1,0 +1,38 @@
+﻿.infoLine{
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    margin:0.5%;
+}
+
+.info {
+    width: 50%;
+}
+
+.accountImg{
+    border-radius:50%;
+}
+
+.editBtn{
+    position:absolute;
+    right:20%;
+}
+.btn:focus{
+    box-shadow:none;
+}
+
+.backgroungImg{
+    position:absolute;
+    right:5%;
+    bottom:5%;
+    z-index:-1;
+}
+
+.saveInput {
+    position: absolute;
+    left: 45%;
+    bottom: 25%;
+    width: 5%;
+    height: 4%;
+    text-align: center
+}

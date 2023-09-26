@@ -1,38 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TripFrogModels;
 using TripFrogModels.Models;
-using TripFrogWebApi;
+using TripFrogWebApi.Services;
 
 namespace TripFrogFixtures
 {
     internal sealed class DatabaseService
     {
-        private static readonly string[] PasswordsForUsersTable = { "crakozyabra0", "piupes12", "kitten18" };
-        private static readonly User[] UsersTableData =
-        {
-            new()
-            {
-                FirstName = "Slava",
-                LastName = "Nedavni",
-                Email = "email1@gmail.com",
-                Role = Role.Traveler
-            },
-            new()
-            {
-                FirstName = "Olya",
-                LastName = "Demchenko",
-                Email = "email2@gmail.com",
-                Role = Role.Traveler
-            },
-            new()
-            {
-                FirstName = "Liuda",
-                LastName = "Nedavnia",
-                Email = "email3@gmail.com",
-                Role = Role.Traveler
-            },
-        };
-
         public DatabaseService()
         {
             var options = new DbContextOptionsBuilder<TripFrogContext>()
@@ -46,11 +20,10 @@ namespace TripFrogFixtures
 
         public void FillUsersTable()
         {
-            int i = 0;
-
-            foreach (var user in UsersTableData)
+            for (int i = 0; i < UsersData.UsersWithoutPassword.Length; i++)
             {
-                PasswordHasherService.HashPassword(PasswordsForUsersTable[i], out byte[] salt, out byte[] hash);
+                PasswordHasher.HashPassword(UsersData.PasswordsForUsers[i], out byte[] salt, out byte[] hash);
+                var user = UsersData.UsersWithoutPassword[i];
 
                 user.Id = Guid.NewGuid();
                 user.RefreshToken = null;
@@ -58,8 +31,6 @@ namespace TripFrogFixtures
                 user.PasswordHash = hash;
                 user.PasswordSalt = salt;
                 Context.Users.Add(user);
-
-                i++;
             }
 
             Context.SaveChanges();

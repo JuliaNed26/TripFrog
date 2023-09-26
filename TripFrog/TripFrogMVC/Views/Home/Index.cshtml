@@ -1,8 +1,91 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+<head>
+    <link rel="stylesheet" href="~/Styles/homepage.css" />
+</head>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<body>
+<div class="d-flex flex-column justify-content-center text-white" id="headOfPage">
+        <img id="headImg" src="~/Images/HomePage/homepageBackground.jpg" alt="Bootstrap">
+    <h1 class="display-1">TAKE YOUR NEXT TRIP</h1>
+    <h1 class="display-1">WITH TRIP FROG!</h1>
+    <h3 class="mt-5">Your dream vacation awaits!</h3>
 </div>
+
+<div class="d-flex flex-row justify-content-between" id="siteShortInfo">
+    <div class="infoColumn">
+            <img src="~/Images/HomePage/place.jpg" alt="Bootstrap" height="93%" width="100%">
+    </div>
+    <div class="infoColumn">
+        <div class="infoContainer">
+            <h3>
+                    <img src="~/Images/HomePage/planetIcon.svg" alt="Bootstrap" width="30" height="30">
+                Explore, Plan, and Relax with Trip Frog!
+            </h3>
+            <p>
+                Are you a passionate traveler seeking unforgettable adventures, or a landlord looking to connect
+                with wanderlust-filled guests? Look no further! Welcome to Trip Frog, your best travel
+                companion and rental management solution.
+            </p>
+        </div>
+        <div class="infoContainer">
+            <h3>
+                    <img src="~/Images/HomePage/luggageIcon.svg" alt="Bootstrap" width="30" height="30">
+                Unleash Your Wanderlust:
+            </h3>
+            <p>
+            Embark on a journey of a lifetime! Our user-friendly platform empowers you to
+            curate your dream destinations, save must-visit spots, and craft personalized itineraries. Whether
+            you're a solo explorer, a couple seeking romance, or a family on a quest for fun, we've got you covered.
+            <p>
+        </div>
+        <div class="infoContainer">
+            <h3>
+                    <img src="~/Images/HomePage/homeIcon.svg" alt="Bootstrap" width="30" height="30">
+                Home Away From Home:
+            </h3>
+            <p>
+                Landlords, have vacant apartments? Let Trip Frog be your bridge to travelers in search of cozy homes.
+                List your apartments, connect with potential guests, and manage reservations effortlessly.
+                It's time to turn your property into a welcoming haven for globetrotters.
+            </p>
+        </div>
+    </div>
+</div>
+<div class="siteBenefits">
+        <img class="benefitsBackground2" src="~/Images/HomePage/carWithPlanet.svg" alt="Bootstrap">
+    <h1 class="mb-5text-center text-white">Why choose us?</h1>
+    <div class="benefitContainer">
+        <h4>
+                <img src="~/Images/HomePage/benefitsFrog.svg" alt="Bootstrap" width="5%" height="3%">
+            Personalized Travel Planning
+        </h4>
+        <h5>
+            Tailor your trips according to your preferences and interests.
+        </h5>
+    </div>
+    <div class="benefitContainer">
+        <h4>
+                <img src="~/Images/HomePage/benefitsFrog.svg" alt="Bootstrap" width="5%" height="3%">
+            Simplified Bookings
+        </h4>
+        <h5>
+            You can effortlessly reserve accommodations you want.
+            Landlords can receive and manage reservations seamlessly through
+            our platform.
+        </h5>
+    </div>
+    <div class="benefitContainer ">
+        <h4>
+                <img src="~/Images/HomePage/benefitsFrog.svg" alt="Bootstrap" width="5%" height="3%">
+            Digital Ticket Wallet
+        </h4>
+        <h5>
+            Store and access tickets without the hassle of paper documents.
+        </h5>
+    </div>
+</div>
+</body>
+
+

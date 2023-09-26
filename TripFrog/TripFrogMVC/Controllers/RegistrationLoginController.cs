@@ -1,57 +1,64 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TripFrogMVC.Services;
+using TripFrogMVC.Services.WebApiClients;
 using TripFrogWebApi.DTO;
 
-namespace TripFrogMVC.Controllers
+namespace TripFrogMVC.Controllers;
+
+public class RegistrationLoginController : Controller
 {
-    public class RegistrationLoginController : Controller
+    private readonly MemoryCacheManagerService _cacheManager;
+    private readonly HttpClientFactory _httpClientFactory;
+
+    public RegistrationLoginController(WebApiInfoService webApiInfo, MemoryCacheManagerService cacheManager)
     {
-        private readonly string _baseUrl;
+        _cacheManager = cacheManager;
+        _httpClientFactory = new HttpClientFactory(webApiInfo, _cacheManager);
+    }
 
-        public RegistrationLoginController(IConfiguration configuration) => _baseUrl = configuration.GetSection("WebApiUrls:Https").Value!;
+    public IActionResult RawRegister()
+    {
+        return View("Register");
+    }
 
-        public IActionResult RawRegister()
+    [HttpPost]
+    public async Task<IActionResult> Register(RegisterUserDto newUser)
+    {
+        using var client = _httpClientFactory.GetHttpClient();
+
+        var response = await client.PostAsJsonAsync("api/Users/register", newUser);
+        var deserializedResponse = await response.DeserializeResponseAsync<Response<UserDto>>();
+
+        if (!response.IsSuccessStatusCode)
         {
-            return View("Register");
+            ModelState.AddModelError(string.Empty, deserializedResponse.Message);
+            return View(newUser);
+        }
+        
+        return RedirectToAction("RawLogin", "RegistrationLogin");
+    }
+
+    public IActionResult RawLogin()
+    {
+        return View("Login");
+    }
+    
+    public async Task<IActionResult> Login(LoginUserCredentialsDto loginUserCredentials)
+    {
+        using var client = _httpClientFactory.GetHttpClient();
+
+        var response = await client.PostAsJsonAsync("api/Users/login", loginUserCredentials);
+        var deserializedResponse = await response.DeserializeResponseAsync<Response<LoginInfoDto>>();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            ModelState.AddModelError(string.Empty, deserializedResponse.Message);
+            return View(loginUserCredentials);
         }
 
-        public async Task<IActionResult> Register(RegisterUserDto newUser)
-        {
-            using (var client = new HttpClient())
-            {
-                client.BaseAddress = new Uri(_baseUrl);
-                var response = await client.PostAsJsonAsync("api/Users/register", newUser);
+        _cacheManager.SetJwtToken(deserializedResponse.Data.Tokens.JwtToken);
+        _cacheManager.SetLoggedUser(deserializedResponse.Data.LoggedUser);
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    ModelState.AddModelError(string.Empty,
-                        $"User was not registered. {response.Content.ReadAsStringAsync().Result}");
-                    return View(newUser);
-                }
-            }
-            
-            return RedirectToAction("RawLogin", "RegistrationLogin");
-        }
-
-        public IActionResult RawLogin()
-        {
-            return View("Login");
-        }
-
-        public async Task<IActionResult> Login(LoginUserDto loginUser)
-        {
-            using (var client = new HttpClient())
-            {
-                client.BaseAddress = new Uri(_baseUrl);
-                var response = await client.PostAsJsonAsync("api/Users/login", loginUser);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    ModelState.AddModelError(string.Empty, $"User was not found or error occured. {response.Content.ReadAsStringAsync().Result}");
-                    return View(loginUser);
-                }
-            }
-
-            return RedirectToAction("Index", "Home");
-        }
+        return RedirectToAction("ShowUserInfo", "UserInfo");
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TripFrogWebApi.DTO;
+using TripFrogWebApi.Repositories;
+using TripFrogWebApi.Services;
 
 namespace TripFrogWebApi.Controllers;
 
@@ -10,96 +12,87 @@ namespace TripFrogWebApi.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmailSender _emailSender;
 
-    public UsersController(IUnitOfWork unitOfWork)
+    public UsersController(IUnitOfWork unitOfWork, IEmailSender emailSender)
     {
         _unitOfWork = unitOfWork;
+        _emailSender = emailSender;
     }
 
     [Authorize]
     [HttpGet]
-    public async Task<ActionResult<IServiceResponse<List<IUserDto>>>> GetUsers()
+    public async Task<ActionResult<IResponse<List<IUserDto>>>> GetUsers()
     {
-        return Ok(await _unitOfWork.Users.GetUsers());
-    }
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<IServiceResponse<IUserDto>>> GetUser(Guid id)
-    {
-        var response = await _unitOfWork.Users.GetUserById(id);
-        return response.Successful ? Ok(response) : NotFound(response);
+        return Ok(await _unitOfWork.UserRepository.GetUsersAsync());
     }
 
     [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<ActionResult<IServiceResponse<IUserDto>>> RegisterUser(RegisterUserDto registerUser)
+    public async Task<ActionResult<IResponse<IUserDto>>> RegisterUser(RegisterUserDto registerUser)
     {
         if (!this.IsModelValid(registerUser, out var modelsState))
         {
             return BadRequest(modelsState);
         }
-        var response = await _unitOfWork.Users.RegisterUser(registerUser);
-        return response.Successful ? Ok(response) : BadRequest(response);
-    }
-
-    [HttpPost("login")]
-    [AllowAnonymous]
-    public async Task<ActionResult<IServiceResponse<Tokens>>> LoginUser(LoginUserDto loginUser)
-    {
-        var response = await _unitOfWork.LoginUser(loginUser);
+        var response = await _unitOfWork.UserRepository.RegisterUserAsync(registerUser);
         if (!response.Successful)
         {
             return BadRequest(response);
         }
-        SaveJwtTokenToCookie(response.Data!.JwtToken);
 
+        await _emailSender.SendRegistrationConfirmationEmailAsync(registerUser.Email, $"{registerUser.FirstName}, happy to see you registered!");
+        return Ok(response);
+    }
+
+    [HttpPost("login")]
+    [AllowAnonymous]
+    public async Task<ActionResult<IResponse<ILoginInfoDto>>> LoginUser(LoginUserCredentialsDto loginUserCredentials)
+    {
+        var response = await _unitOfWork.LoginUser(loginUserCredentials);
+        if (!response.Successful)
+        {
+            return BadRequest(response);
+        }
+        
         return Ok(response);
     }
 
     [HttpPost("refresh-token")]
-    public async Task<ActionResult<IServiceResponse<Tokens>>> RefreshTokens(Tokens tokens)
+    public async Task<ActionResult<IResponse<ILoginInfoDto>>> RefreshJwtToken(TokensDto tokens)
     {
-        var response = await _unitOfWork.RefreshJwtToken(tokens);
-        if (response.Successful)
+        var response = await _unitOfWork.RefreshTokenRepository.RegenerateJwtTokenWithRefreshTokenAsync(tokens);
+        if (!response.Successful)
         {
-            SaveJwtTokenToCookie(response.Data!.JwtToken);
-            return Ok(response);
+            return BadRequest(response);
         }
-        return BadRequest(response);
+        
+        return Ok(response);
     }
 
     [HttpPost("logout/{userId}")]
     public async Task<ActionResult> LogoutUser(Guid userId)
     {
         await _unitOfWork.LogoutUser(userId);
-        HttpContext.Response.Cookies.Delete(CookieKeys.KeyForSavingJwtInCookie);
+        HttpContext.Response.Cookies.Delete(AppConstants.KeyForSavingJwtInCookie);
         return Ok();
     }
 
     [HttpPut]
-    public async Task<ActionResult<IServiceResponse<IUserDto>>> ChangeUserInfo(ChangedUserInfoDto user)
+    public async Task<ActionResult<IResponse<IUserDto>>> ChangeUserInfo(ChangedUserInfoDto user)
     {
         if (!this.IsModelValid(user, out var modelsState))
         {
             return BadRequest(modelsState);
         }
-        var response = await _unitOfWork.Users.ChangeUserInfo(user);
+        var response = await _unitOfWork.UserRepository.ChangeUserInfoAsync(user);
         return response.Successful ? Ok(response) : NotFound(response);
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<IServiceResponse<IUserDto>>> DeleteUser(Guid id)
+    public async Task<ActionResult<IResponse<IUserDto>>> DeleteUser(Guid id)
     {
-        var response = await _unitOfWork.Users.DeleteUserAsync(id);
+        var response = await _unitOfWork.UserRepository.DeleteUserAsync(id);
         return response.Successful ? Ok(response) : NotFound(response);
-    }
-
-    private void SaveJwtTokenToCookie(string jwtToken)
-    {
-        HttpContext.Response.Cookies.Append(CookieKeys.KeyForSavingJwtInCookie, jwtToken,
-            new CookieOptions
-            {
-                MaxAge = TimeSpan.FromMinutes(20)
-            });
     }
 }

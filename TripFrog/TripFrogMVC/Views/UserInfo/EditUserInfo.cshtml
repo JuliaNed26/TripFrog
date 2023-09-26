@@ -1,0 +1,76 @@
+﻿@using TripFrogModels
+@model TripFrogWebApi.DTO.ChangedUserInfoDto
+
+@{
+    Layout = "_RegisteredUserLayout";
+    ViewData["Title"] = "ChangeUserInfo";
+}
+
+<head>
+    <link rel="stylesheet" href="~/Styles/userInfo.css" />
+</head>
+
+<div class="container mt-5">
+    <h1 class="mt-5">Edit information</h1>
+
+    <hr />
+    <form method="post" asp-action="EditUserInfo" enctype="multipart/form-data">
+            <div class="d-flex flex-row justify-content-between mt-5">
+                <div>
+                    <label for="photoInput" class="custom-upload-button">
+                        <h4>Upload photo:</h4>
+                        @if (ViewData["AccountPhoto"] is null || ViewData["AccountPhoto"].ToString() == "")
+                        {
+                            <img class="accountImg" src="~/Images/Icons/accountIcon.svg" alt="Bootstrap" width="200" height="200">
+                        }
+                        else
+                        {
+                            <img class="accountImg" src=@ViewData["AccountPhoto"] alt="Bootstrap" width="200" height="200">
+                        }
+                    </label>
+                <input asp-for="PictureUrl" style="visibility:hidden;" value="@ViewData["AccountPhoto"]" class="form-control" />
+                    <form>
+                    <input type="file" style="visibility:hidden;" id="photoInput" name="photoInput" accept=".jpg, .jpeg, .png, .gif">
+                    </form>
+                </div>
+                <div class=" info d-flex flex-column justify-content-start">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-group">
+                        <h4>First name:</h4>
+                        <input asp-for="FirstName" value="@ViewData["FirstName"]" class="form-control"/>
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mt-2">
+                        <h4>Last name:</h4>
+                        <input asp-for="LastName" value="@ViewData["LastName"]" class="form-control"/>
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mt-2">
+                        <h4>Email:</h4>
+                        <input asp-for="Email" value="@ViewData["Email"]" class="form-control"/>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mt-2">
+                        <h4>Phone:</h4>
+                        <input asp-for="Phone" value="@ViewData["Phone"]" class="form-control"/>
+                        <span asp-validation-for="Phone" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mt-2">
+                        <h4>Role:</h4>
+                        <select asp-for="Role" asp-items="Html.GetEnumSelectList<Role>()" class="form-select"></select>
+                        <span asp-validation-for="Role" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="saveBtn form-group mt-2"> 
+                    <input type="submit" value="Save" class="saveInput btn btn-success"/>
+                </div>
+            </div>
+        </form>
+        <img class="backgroungImg" src="~/Images/frogPaws.svg" alt="Bootstrap" width="500" height="500">
+    </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

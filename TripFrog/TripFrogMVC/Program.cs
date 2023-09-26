@@ -1,7 +1,17 @@
+using TripFrogMVC.Middleware;
+using TripFrogMVC.Services;
+using TripFrogMVC.Services.WebApiClients;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+builder.Services.AddMemoryCache();
+
+string webApiUrl = builder.Configuration.GetSection("WebApiUrls:Https").Value!;
+builder.Services.AddSingleton(_ => new WebApiInfoService(webApiUrl));
+builder.Services.AddSingleton<BlobsApiClient>();
+builder.Services.AddSingleton<RefreshTokenApiClient>();
+builder.Services.AddSingleton<MemoryCacheManagerService>();
 
 var app = builder.Build();
 
@@ -18,6 +28,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseMiddleware<TokenExpirationCheckMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllerRoute(
@@ -25,3 +37,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+
+
